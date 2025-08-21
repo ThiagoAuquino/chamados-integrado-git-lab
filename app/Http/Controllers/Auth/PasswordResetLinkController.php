@@ -9,12 +9,21 @@ use App\Http\Controllers\Controller;
 use App\Domain\Auth\DTOs\SendPasswordResetLinkDTO;
 use App\Domain\Auth\UseCases\SendPasswordResetLinkUseCase;
 use Illuminate\Support\Facades\Password;
+use Illuminate\View\View;
 
 class PasswordResetLinkController extends Controller
 {
     public function __construct(
         private SendPasswordResetLinkUseCase $sendResetLink
     ) {}
+
+    /**
+     * Exibe o formulário de solicitação de link de redefinição de senha.
+     */
+    public function create(): View
+    {
+        return view('auth.forgot-password');
+    }
 
     public function store(Request $request): RedirectResponse
     {
