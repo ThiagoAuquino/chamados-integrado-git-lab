@@ -3,22 +3,17 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use App\Domain\Auth\UseCases\SendEmailVerificationUseCase;
 
 class EmailVerificationNotificationController extends Controller
 {
-    /**
-     * Send a new email verification notification.
-     */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, SendEmailVerificationUseCase $useCase)
     {
-        if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(route('dashboard', absolute: false));
-        }
+        $user = $request->user();
 
-        $request->user()->sendEmailVerificationNotification();
+        $useCase->execute($user);
 
-        return back()->with('status', 'verification-link-sent');
+        return back()->with('status', 'Link de verificação enviado!');
     }
 }
