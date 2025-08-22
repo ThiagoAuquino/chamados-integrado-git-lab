@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\DemandaController;
+use App\Http\Controllers\Api\DemandaImportController;
 
 Route::prefix('demandas')->group(function () {
     Route::get('/', [DemandaController::class, 'index']);
@@ -55,4 +56,7 @@ Route::prefix('demandas')->group(function () {
     // Validações específicas
     Route::post('validate-assignment', [DemandaController::class, 'validateAssignment']);
     Route::post('validate-status-change', [DemandaController::class, 'validateStatusChange']);
+
+    Route::post('/import', DemandaImportController::class);
+
 });

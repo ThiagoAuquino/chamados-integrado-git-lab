@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class DemandaController extends Controller
 {
@@ -14,6 +16,81 @@ class DemandaController extends Controller
     public function __construct()
     {
         $this->apiUrl = config('app.url') . '/api/demandas';
+    }
+
+    public function importForm()
+    {
+        // if (Gate::denies('import_demandas')) {
+        //     abort(403, 'Você não tem permissão para importar demandas.');
+        // }
+
+        return view('demandas.import');
+    }
+
+        /**
+     * Processa o upload e envia o arquivo para a API
+     */
+    public function processImport(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx'
+        ]);
+
+        try {
+            $response = Http::attach(
+                'file',
+                file_get_contents($request->file('file')->getRealPath()),
+                $request->file('file')->getClientOriginalName()
+            )->post(config('services.api.base_url') . '/demandas/import');
+
+            if ($response->failed()) {
+                return redirect()->back()->withErrors(['file' => 'Erro ao processar o arquivo.']);
+            }
+
+            $result = $response->json();
+
+            return redirect()->back()->with('import_result', [
+                'importadas' => $result['importadas'] ?? 0,
+                'erros' => $result['erros'] ?? []
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erro na importação de demandas: ' . $e->getMessage());
+
+            return redirect()->back()->withErrors(['file' => 'Erro inesperado ao importar o arquivo.']);
+        }
+    }
+
+    public function importProcess(Request $request)
+    {
+        if (Gate::denies('import_demandas')) {
+            abort(403);
+        }
+
+        $request->validate([
+            'arquivo' => 'required|file|mimes:xlsx,xls',
+        ]);
+
+        $file = $request->file('arquivo');
+
+        // Envia o arquivo para a API
+        $response = Http::attach(
+            'arquivo',
+            file_get_contents($file->getRealPath()),
+            $file->getClientOriginalName()
+        )->post(route('api.demandas.importar'), [
+            'user_id' => Auth::id(),
+        ]);
+
+        if ($response->failed()) {
+           return redirect()->back()->withErrors(['file' => 'Erro ao processar o arquivo.']);
+        }
+
+
+        if ($response->successful()) {
+            return redirect()->route('demandas.import.form')->with('feedback', $response->json());
+        }
+
+        return redirect()->route('demandas.import.form')->withErrors(['arquivo' => 'Erro ao importar demandas.']);
     }
 
     public function index(Request $request)
@@ -75,7 +152,7 @@ class DemandaController extends Controller
         Gate::authorize('bulk-operations');
 
         $token = $request->user()->createToken('web')->plainTextToken;
-        
+
         try {
             $response = Http::withToken($token)
                 ->post($this->apiUrl . '/bulk-update', [
@@ -94,7 +171,7 @@ class DemandaController extends Controller
         }
     }
 
-        public function show(Request $request, int $id)
+    public function show(Request $request, int $id)
     {
         $token = $request->user()->createToken('web')->plainTextToken;
 

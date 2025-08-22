@@ -1,322 +1,322 @@
-<?php
+    <?php
 
-namespace App\Http\Controllers\Api;
+    namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Domain\Demanda\UseCases\ListDemandaUseCase;
-use App\Domain\Demanda\UseCases\CreateDemandaUseCase;
-use App\Domain\Demanda\UseCases\UpdateDemandaUseCase;
-use App\Domain\Demanda\UseCases\ChangeStatusDemandaUseCase;
-use App\Domain\Demanda\UseCases\ApproveDemandaUseCase;
-use App\Domain\Demanda\UseCases\ShowDemandaUseCase;
-use App\Domain\Demanda\UseCases\DeleteDemandaUseCase;
-use App\Domain\Demanda\DTOs\CreateDemandaDTO;
-use App\Domain\Demanda\DTOs\UpdateDemandaDTO;
-use App\Http\Requests\Demanda\StoreDemandaRequest;
-use App\Http\Requests\Demanda\UpdateDemandaRequest;
-use App\Models\Demanda\Demanda;
+    use App\Http\Controllers\Controller;
+    use Illuminate\Http\Request;
+    use App\Domain\Demanda\UseCases\ListDemandaUseCase;
+    use App\Domain\Demanda\UseCases\CreateDemandaUseCase;
+    use App\Domain\Demanda\UseCases\UpdateDemandaUseCase;
+    use App\Domain\Demanda\UseCases\ChangeStatusDemandaUseCase;
+    use App\Domain\Demanda\UseCases\ApproveDemandaUseCase;
+    use App\Domain\Demanda\UseCases\ShowDemandaUseCase;
+    use App\Domain\Demanda\UseCases\DeleteDemandaUseCase;
+    use App\Domain\Demanda\DTOs\CreateDemandaDTO;
+    use App\Domain\Demanda\DTOs\UpdateDemandaDTO;
+    use App\Http\Requests\Demanda\StoreDemandaRequest;
+    use App\Http\Requests\Demanda\UpdateDemandaRequest;
+    use App\Models\Demanda\Demanda;
 
-class DemandaController extends Controller
-{
-    public function index(ListDemandaUseCase $useCase)
+    class DemandaController extends Controller
     {
-        $this->authorize('viewAny', Demanda::class);
+        public function index(ListDemandaUseCase $useCase)
+        {
+            $this->authorize('viewAny', Demanda::class);
 
-        return response()->json($useCase->execute());
-    }
-
-    public function show($id, ShowDemandaUseCase $useCase)
-    {
-        $demanda = Demanda::findOrFail($id);
-        $this->authorize('view', $demanda);
-
-        return response()->json($useCase->execute($id));
-    }
-
-    public function store(StoreDemandaRequest $request, CreateDemandaUseCase $useCase)
-    {
-        $this->authorize('create', Demanda::class);
-
-        $validated = $request->validated();
-        $dto = new CreateDemandaDTO(...$validated);
-        $demanda = $useCase->execute($dto);
-
-        return response()->json($demanda, 201);
-    }
-
-    public function update(UpdateDemandaRequest $request, $id, UpdateDemandaUseCase $useCase)
-    {
-        $demanda = Demanda::findOrFail($id);
-        $this->authorize('update', $demanda);
-
-        $validated = $request->validated();
-        $dto = UpdateDemandaDTO::fromArray($validated);
-        $ok = $useCase->execute($id, $dto);
-
-        if (!$ok) {
-            return response()->json(['message' => 'Demanda não encontrada'], 404);
+            return response()->json($useCase->execute());
         }
 
-        return response()->json(['message' => 'Atualizado com sucesso']);
-    }
+        public function show($id, ShowDemandaUseCase $useCase)
+        {
+            $demanda = Demanda::findOrFail($id);
+            $this->authorize('view', $demanda);
 
-    public function destroy($id, DeleteDemandaUseCase $useCase)
-    {
-        $demanda = Demanda::findOrFail($id);
-        $this->authorize('delete', $demanda);
-
-        $ok = $useCase->execute($id);
-
-        if (!$ok) {
-            return response()->json(['message' => 'Demanda não encontrada'], 404);
+            return response()->json($useCase->execute($id));
         }
 
-        return response()->json(['message' => 'Excluída com sucesso']);
-    }
+        public function store(StoreDemandaRequest $request, CreateDemandaUseCase $useCase)
+        {
+            $this->authorize('create', Demanda::class);
 
-    public function approve($id, ApproveDemandaUseCase $useCase)
-    {
-        $demanda = Demanda::findOrFail($id);
-        $this->authorize('approve', $demanda);
+            $validated = $request->validated();
+            $dto = new CreateDemandaDTO(...$validated);
+            $demanda = $useCase->execute($dto);
 
-        $ok = $useCase->execute($id);
-
-        if (!$ok) {
-            return response()->json(['message' => 'Demanda não encontrada ou erro ao aprovar'], 400);
+            return response()->json($demanda, 201);
         }
 
-        return response()->json(['message' => 'Demanda aprovada']);
-    }
+        public function update(UpdateDemandaRequest $request, $id, UpdateDemandaUseCase $useCase)
+        {
+            $demanda = Demanda::findOrFail($id);
+            $this->authorize('update', $demanda);
 
-    public function changeStatus(Request $request, $id, ChangeStatusDemandaUseCase $useCase)
-    {
-        $demanda = Demanda::findOrFail($id);
-        $this->authorize('changeStatus', $demanda);
+            $validated = $request->validated();
+            $dto = UpdateDemandaDTO::fromArray($validated);
+            $ok = $useCase->execute($id, $dto);
 
-        $validated = $request->validate([
-            'status' => 'required|in:em_branco,analise,em_execucao,em_testes,validacao,entregue',
-        ]);
+            if (!$ok) {
+                return response()->json(['message' => 'Demanda não encontrada'], 404);
+            }
 
-        $ok = $useCase->execute($id, $validated['status']);
-
-        if (!$ok) {
-            return response()->json(['message' => 'Demanda não encontrada ou erro ao alterar status'], 400);
+            return response()->json(['message' => 'Atualizado com sucesso']);
         }
 
-        return response()->json(['message' => 'Status alterado']);
-    }
+        public function destroy($id, DeleteDemandaUseCase $useCase)
+        {
+            $demanda = Demanda::findOrFail($id);
+            $this->authorize('delete', $demanda);
 
-    /**
-     * Estatísticas gerais das demandas
-     */
-    public function stats(Request $request)
-    {
-        try {
-            $stats = $this->listDemandaUseCase->getStats();
+            $ok = $useCase->execute($id);
 
-            return response()->json([
-                'data' => $stats,
-                'message' => 'Estatísticas obtidas com sucesso'
+            if (!$ok) {
+                return response()->json(['message' => 'Demanda não encontrada'], 404);
+            }
+
+            return response()->json(['message' => 'Excluída com sucesso']);
+        }
+
+        public function approve($id, ApproveDemandaUseCase $useCase)
+        {
+            $demanda = Demanda::findOrFail($id);
+            $this->authorize('approve', $demanda);
+
+            $ok = $useCase->execute($id);
+
+            if (!$ok) {
+                return response()->json(['message' => 'Demanda não encontrada ou erro ao aprovar'], 400);
+            }
+
+            return response()->json(['message' => 'Demanda aprovada']);
+        }
+
+        public function changeStatus(Request $request, $id, ChangeStatusDemandaUseCase $useCase)
+        {
+            $demanda = Demanda::findOrFail($id);
+            $this->authorize('changeStatus', $demanda);
+
+            $validated = $request->validate([
+                'status' => 'required|in:em_branco,analise,em_execucao,em_testes,validacao,entregue',
             ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Erro ao obter estatísticas',
-                'message' => $e->getMessage()
-            ], 500);
+
+            $ok = $useCase->execute($id, $validated['status']);
+
+            if (!$ok) {
+                return response()->json(['message' => 'Demanda não encontrada ou erro ao alterar status'], 400);
+            }
+
+            return response()->json(['message' => 'Status alterado']);
         }
-    }
 
-    /**
-     * Histórico de uma demanda específica
-     */
-    public function history(Request $request, int $id)
-    {
-        try {
-            $history = $this->getDemandaHistoryUseCase->execute($id);
+        /**
+         * Estatísticas gerais das demandas
+         */
+        public function stats(Request $request)
+        {
+            try {
+                $stats = $this->listDemandaUseCase->getStats();
 
-            return response()->json([
-                'data' => $history,
-                'message' => 'Histórico obtido com sucesso'
+                return response()->json([
+                    'data' => $stats,
+                    'message' => 'Estatísticas obtidas com sucesso'
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'Erro ao obter estatísticas',
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+        }
+
+        /**
+         * Histórico de uma demanda específica
+         */
+        public function history(Request $request, int $id)
+        {
+            try {
+                $history = $this->getDemandaHistoryUseCase->execute($id);
+
+                return response()->json([
+                    'data' => $history,
+                    'message' => 'Histórico obtido com sucesso'
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'Erro ao obter histórico',
+                    'message' => $e->getMessage()
+                ], 404);
+            }
+        }
+
+        /**
+         * Operações em lote
+         */
+        public function bulkUpdate(Request $request)
+        {
+            $request->validate([
+                'ids' => 'required|array',
+                'ids.*' => 'integer|exists:demandas,id',
+                'action' => 'required|string|in:assign,change_status,update_priority',
+                'value' => 'required'
             ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Erro ao obter histórico',
-                'message' => $e->getMessage()
-            ], 404);
+
+            try {
+                $result = $this->bulkUpdateDemandaUseCase->execute(
+                    $request->input('ids'),
+                    $request->input('action'),
+                    $request->input('value'),
+                    auth()->id()
+                );
+
+                return response()->json([
+                    'data' => $result,
+                    'message' => 'Operação em lote realizada com sucesso'
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'Erro na operação em lote',
+                    'message' => $e->getMessage()
+                ], 400);
+            }
         }
-    }
 
-    /**
-     * Operações em lote
-     */
-    public function bulkUpdate(Request $request)
-    {
-        $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'integer|exists:demandas,id',
-            'action' => 'required|string|in:assign,change_status,update_priority',
-            'value' => 'required'
-        ]);
+        /**
+         * Demandas pendentes de aprovação
+         */
+        public function pending(Request $request)
+        {
+            try {
+                $demandas = $this->listDemandaUseCase->getPending();
 
-        try {
-            $result = $this->bulkUpdateDemandaUseCase->execute(
-                $request->input('ids'),
-                $request->input('action'),
-                $request->input('value'),
-                auth()->id()
-            );
+                return response()->json([
+                    'data' => $demandas,
+                    'message' => 'Demandas pendentes obtidas com sucesso'
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'Erro ao obter demandas pendentes',
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+        }
 
-            return response()->json([
-                'data' => $result,
-                'message' => 'Operação em lote realizada com sucesso'
+        /**
+         * Demandas em atraso
+         */
+        public function overdue(Request $request)
+        {
+            try {
+                $demandas = $this->listDemandaUseCase->getOverdue();
+
+                return response()->json([
+                    'data' => $demandas,
+                    'message' => 'Demandas em atraso obtidas com sucesso'
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'Erro ao obter demandas em atraso',
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+        }
+
+        /**
+         * Demandas por usuário
+         */
+        public function byUser(Request $request, int $userId)
+        {
+            try {
+                $demandas = $this->listDemandaUseCase->getByUser($userId);
+
+                return response()->json([
+                    'data' => $demandas,
+                    'message' => 'Demandas do usuário obtidas com sucesso'
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'Erro ao obter demandas do usuário',
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+        }
+
+        /**
+         * Atualizar prioridade
+         */
+        public function updatePriority(Request $request)
+        {
+            $request->validate([
+                'demanda_id' => 'required|integer|exists:demandas,id',
+                'priority' => 'required|string|in:verde,amarelo,laranja,vermelho',
+                'order' => 'integer|min:0'
             ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Erro na operação em lote',
-                'message' => $e->getMessage()
-            ], 400);
+
+            try {
+                $demanda = $this->updatePriorityUseCase->execute(
+                    $request->input('demanda_id'),
+                    $request->input('priority'),
+                    $request->input('order', 0),
+                    auth()->id()
+                );
+
+                return response()->json([
+                    'data' => $demanda,
+                    'message' => 'Prioridade atualizada com sucesso'
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'Erro ao atualizar prioridade',
+                    'message' => $e->getMessage()
+                ], 400);
+            }
         }
-    }
 
-    /**
-     * Demandas pendentes de aprovação
-     */
-    public function pending(Request $request)
-    {
-        try {
-            $demandas = $this->listDemandaUseCase->getPending();
-
-            return response()->json([
-                'data' => $demandas,
-                'message' => 'Demandas pendentes obtidas com sucesso'
+        /**
+         * Adicionar comentário
+         */
+        public function addComment(Request $request, int $id)
+        {
+            $request->validate([
+                'comment' => 'required|string|max:1000'
             ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Erro ao obter demandas pendentes',
-                'message' => $e->getMessage()
-            ], 500);
+
+            try {
+                $comment = $this->addCommentUseCase->execute(
+                    $id,
+                    $request->input('comment'),
+                    auth()->id()
+                );
+
+                return response()->json([
+                    'data' => $comment,
+                    'message' => 'Comentário adicionado com sucesso'
+                ], 201);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'Erro ao adicionar comentário',
+                    'message' => $e->getMessage()
+                ], 400);
+            }
+        }
+
+        /**
+         * Exportar demandas
+         */
+        public function export(Request $request)
+        {
+            try {
+                $filters = $request->only(['status', 'responsavel_id', 'tipo', 'cliente', 'priority']);
+
+                $export = $this->exportDemandaUseCase->execute($filters);
+
+                return response()->json([
+                    'data' => $export,
+                    'message' => 'Exportação gerada com sucesso'
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'Erro ao exportar demandas',
+                    'message' => $e->getMessage()
+                ], 500);
+            }
         }
     }
-
-    /**
-     * Demandas em atraso
-     */
-    public function overdue(Request $request)
-    {
-        try {
-            $demandas = $this->listDemandaUseCase->getOverdue();
-
-            return response()->json([
-                'data' => $demandas,
-                'message' => 'Demandas em atraso obtidas com sucesso'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Erro ao obter demandas em atraso',
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Demandas por usuário
-     */
-    public function byUser(Request $request, int $userId)
-    {
-        try {
-            $demandas = $this->listDemandaUseCase->getByUser($userId);
-
-            return response()->json([
-                'data' => $demandas,
-                'message' => 'Demandas do usuário obtidas com sucesso'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Erro ao obter demandas do usuário',
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Atualizar prioridade
-     */
-    public function updatePriority(Request $request)
-    {
-        $request->validate([
-            'demanda_id' => 'required|integer|exists:demandas,id',
-            'priority' => 'required|string|in:verde,amarelo,laranja,vermelho',
-            'order' => 'integer|min:0'
-        ]);
-
-        try {
-            $demanda = $this->updatePriorityUseCase->execute(
-                $request->input('demanda_id'),
-                $request->input('priority'),
-                $request->input('order', 0),
-                auth()->id()
-            );
-
-            return response()->json([
-                'data' => $demanda,
-                'message' => 'Prioridade atualizada com sucesso'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Erro ao atualizar prioridade',
-                'message' => $e->getMessage()
-            ], 400);
-        }
-    }
-
-    /**
-     * Adicionar comentário
-     */
-    public function addComment(Request $request, int $id)
-    {
-        $request->validate([
-            'comment' => 'required|string|max:1000'
-        ]);
-
-        try {
-            $comment = $this->addCommentUseCase->execute(
-                $id,
-                $request->input('comment'),
-                auth()->id()
-            );
-
-            return response()->json([
-                'data' => $comment,
-                'message' => 'Comentário adicionado com sucesso'
-            ], 201);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Erro ao adicionar comentário',
-                'message' => $e->getMessage()
-            ], 400);
-        }
-    }
-
-    /**
-     * Exportar demandas
-     */
-    public function export(Request $request)
-    {
-        try {
-            $filters = $request->only(['status', 'responsavel_id', 'tipo', 'cliente', 'priority']);
-
-            $export = $this->exportDemandaUseCase->execute($filters);
-
-            return response()->json([
-                'data' => $export,
-                'message' => 'Exportação gerada com sucesso'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Erro ao exportar demandas',
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    }
-}

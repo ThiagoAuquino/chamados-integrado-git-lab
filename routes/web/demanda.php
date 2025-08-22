@@ -27,4 +27,10 @@ Route::middleware(['auth', 'verified'])->prefix('demandas')->name('demandas.')->
         Route::post('{demanda}/comment', [DemandaController::class, 'addComment'])->name('comment');
         Route::post('update-priority', [DemandaController::class, 'updatePriority'])->name('update-priority');
     });
+
+    // Rotas para importação via formulário
+    Route::get('importar', [DemandaController::class, 'importForm'])->name('import.form')
+        ->middleware('can:import_demandas');
+    Route::post('importar', [DemandaController::class, 'importProcess'])->name('import.process')
+        ->middleware('can:import_demandas');
 });
