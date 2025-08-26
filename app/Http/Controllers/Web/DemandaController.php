@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\Demanda\Demanda;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Gate;
@@ -27,7 +28,7 @@ class DemandaController extends Controller
         return view('demandas.import');
     }
 
-        /**
+    /**
      * Processa o upload e envia o arquivo para a API
      */
     public function processImport(Request $request)
@@ -82,7 +83,7 @@ class DemandaController extends Controller
         ]);
 
         if ($response->failed()) {
-           return redirect()->back()->withErrors(['file' => 'Erro ao processar o arquivo.']);
+            return redirect()->back()->withErrors(['file' => 'Erro ao processar o arquivo.']);
         }
 
 
@@ -296,20 +297,10 @@ class DemandaController extends Controller
 
     public function destroy(Request $request, int $id)
     {
-        $demandaModel = \App\Models\Demanda\Demanda::find($id);
-        Gate::authorize('delete', $demandaModel);
-
+        Gate::authorize('delete', Demanda::findOrFail($id));
         $token = $request->user()->createToken('web')->plainTextToken;
-
-        try {
-            $response = Http::withToken($token)
-                ->delete($this->apiUrl . '/' . $id);
-
-            if ($response->successful()) {
-                return redirect()->route;
-            }
-        } catch (\Throwable $th) {
-            //throw $th;
-        }
+        Http::withToken($token)
+            ->delete($this->apiUrl . '/' . $id);
+        return redirect()->route('demandas.index')->with('success', 'Demanda excluída com sucesso!');
     }
 }

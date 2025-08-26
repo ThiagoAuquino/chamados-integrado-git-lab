@@ -6,8 +6,10 @@ use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvid
 use Illuminate\Support\Facades\Gate;
 use App\Domain\Auth\Services\AuthServiceInterface;
 use App\Domain\Auth\Services\AuthService; // Implemente essa classe
+use App\Domain\Permission\Repositories\DeniedPermissionRepositoryInterface;
 use App\Domain\Permission\Repositories\PermissionRepositoryInterface;
 use App\Domain\Usuario\Repositories\UserRepositoryInterface;
+use App\Infrastructure\Persistence\Permission\DeniedPermissionRepository;
 use App\Infrastructure\Persistence\Permission\PermissionRepository;
 use App\Infrastructure\Persistence\Usuario\UserRepository;
 
@@ -28,6 +30,7 @@ class AuthServiceProvider extends ServiceProvider
         // Bind dos repositórios para as implementações concretas
         $this->app->bind(PermissionRepositoryInterface::class, PermissionRepository::class);
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
+        $this->app->bind(DeniedPermissionRepositoryInterface::class, DeniedPermissionRepository::class);
     }
 
 

@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\RoleController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\Permission\PermissionController;
-use App\Http\Controllers\Api\Role\RoleController;
 
 Route::middleware('auth:api')->group(function () {
     // Permissões

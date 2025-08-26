@@ -23,7 +23,12 @@ class User extends Authenticatable
      */
 
     protected $fillable = [
-        'name', 'email', 'password', 'active', 'email_verified_at', 'last_login_at',
+        'name',
+        'email',
+        'password',
+        'active',
+        'email_verified_at',
+        'last_login_at',
     ];
 
     /**
@@ -49,7 +54,7 @@ class User extends Authenticatable
         ];
     }
 
-        public function demandaLogs()
+    public function demandaLogs()
     {
         return $this->hasMany(DemandaLog::class);
     }
@@ -62,5 +67,15 @@ class User extends Authenticatable
     public function roles()
     {
         return $this->belongsToMany(Role::class, 'user_roles');
+    }
+
+    public function deniedPermissions()
+    {
+        return $this->belongsToMany(
+            Permission::class,
+            'denied_permissions',
+            'user_id',
+            'permission_id'
+        );
     }
 }

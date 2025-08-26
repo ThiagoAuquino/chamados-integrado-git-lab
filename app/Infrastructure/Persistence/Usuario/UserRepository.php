@@ -4,10 +4,10 @@ namespace App\Infrastructure\Persistence\Usuario;
 
 use App\Domain\Usuario\Entities\User as UserEntiti;
 use App\Models\Users\User;
-use App\Domain\Usuario\Repositories\UserRepositoryInterface;
 use Illuminate\Support\Facades\Hash;
 use App\Domain\Usuario\DTOs\CreateUserDTO;
 use App\Domain\Usuario\DTOs\UpdateUserDTO;
+use App\Domain\Usuario\Repositories\UserRepositoryInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class UserRepository implements UserRepositoryInterface

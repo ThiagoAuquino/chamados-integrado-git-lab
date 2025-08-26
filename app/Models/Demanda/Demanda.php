@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Demanda;
 
+use App\Models\DemandaLog;
 use App\Models\Users\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

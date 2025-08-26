@@ -22,6 +22,7 @@ Route::prefix('demandas')->group(function () {
     // Histórico e logs
     Route::get('{id}/history', [DemandaController::class, 'history']);
     Route::get('{id}/timeline', [DemandaController::class, 'timeline']);
+    Route::get('{id}/historico', [DemandaController::class, 'historico']);
 
     // Operações em lote
     Route::post('bulk-update', [DemandaController::class, 'bulkUpdate']);
@@ -58,5 +59,7 @@ Route::prefix('demandas')->group(function () {
     Route::post('validate-status-change', [DemandaController::class, 'validateStatusChange']);
 
     Route::post('/import', DemandaImportController::class);
+
+   
 
 });

@@ -15,4 +15,21 @@ class ListDemandaUseCase
     {
         return $this->demandaRepository->all();
     }
+
+    public function getStats(): array
+    {
+        return $this->repository->getStats();
+    }
+    public function getPending(): mixed
+    {
+        return $this->repository->getPending();
+    }
+    public function getOverdue(): mixed
+    {
+        return $this->repository->getOverdue();
+    }
+    public function getByUser(int $userId): mixed
+    {
+        return $this->repository->getByUser($userId);
+    }
 }

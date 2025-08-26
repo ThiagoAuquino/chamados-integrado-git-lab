@@ -21,7 +21,7 @@ class DashboardController extends Controller
                 ->get($apiUrl . '/demandas/stats')
                 ->json();
 
-            return view('pages.dashboard.index', compact('stats'));
+            return view('dashboard.index', compact('stats'));
         } catch (\Exception $e) {
             $stats = [
                 'total' => 0,
@@ -32,7 +32,7 @@ class DashboardController extends Controller
                 'entregue' => 0
             ];
 
-            return view('pages.dashboard.index', compact('stats'))
+            return view('dashboard.index', compact('stats'))
                 ->with('error', 'Erro ao carregar estatísticas');
         }
     }

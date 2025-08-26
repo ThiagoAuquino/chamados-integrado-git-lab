@@ -4,12 +4,12 @@ namespace App\Domain\Demanda\UseCases;
 
 use App\Domain\Demanda\Repositories\DemandaRepositoryInterface;
 
-class GetDemandaHistoryUseCase
+class GetAllDemandasUseCase
 {
     public function __construct(private DemandaRepositoryInterface $repository) {}
 
-    public function execute(int $id): array
+    public function execute()
     {
-        return $this->repository->getHistory($id);
+        return $this->repository->all();
     }
 }
