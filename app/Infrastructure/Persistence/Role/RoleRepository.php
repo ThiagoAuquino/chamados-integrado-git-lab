@@ -1,50 +1,22 @@
 <?php
 
-namespace App\Infrastructure\Persistence\Role;
+namespace App\Domain\Role\Repositories;
 
-use App\Domain\Role\Repositories\RoleRepositoryInterface;
-use App\Models\Role;
-use Illuminate\Support\Collection;
+use App\Domain\Role\Entities\Role;
+use App\Domain\Role\DTOs\CreateRoleDTO;
+use App\Domain\Role\DTOs\UpdateRoleDTO;
 
-class RoleRepository implements RoleRepositoryInterface
+interface RoleRepositoryInterface
 {
-    protected $roleModel;
+    public function all(): array;
 
-    public function __construct(App\Models\Role $role)
-    {
-        $this->roleModel = $role;
-    }
+    public function findById(int $id): ?Role;
 
-    public function all(): Collection
-    {
-        return $this->roleModel->all();
-    }
+    public function findByName(string $name): ?Role;
 
-    public function find(int $id): ?object
-    {
-        return $this->roleModel->find($id);
-    }
+    public function create(CreateRoleDTO $dto): Role;
 
-    public function create(array $data): object
-    {
-        return $this->roleModel->create($data);
-    }
+    public function update(int $id, UpdateRoleDTO $dto): bool;
 
-    public function update(int $id, array $data): bool
-    {
-        $item = $this->find($id);
-        if (!$item) {
-            return false;
-        }
-        return $item->update($data);
-    }
-
-    public function delete(int $id): bool
-    {
-        $item = $this->find($id);
-        if (!$item) {
-            return false;
-        }
-        return $item->delete();
-    }
+    public function delete(int $id): bool;
 }

@@ -1,12 +1,14 @@
 <?php
 
-namespace App\Models\Demanda;
+namespace App\Models;
 
+use App\Models\Users\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Demanda extends Model
 {
-    protected $table = 'demandas';
+    use HasFactory;
 
     protected $fillable = [
         'produto',
@@ -17,10 +19,24 @@ class Demanda extends Model
         'cliente',
         'responsavel_id',
         'status',
+        'priority',
+        'order',
         'prioridade',
     ];
 
     protected $casts = [
         'data_previsao' => 'date',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
+
+    public function logs()
+    {
+        return $this->hasMany(DemandaLog::class);
+    }
+
+    public function responsavel()
+    {
+        return $this->belongsTo(User::class, 'responsavel_id');
+    }
 }

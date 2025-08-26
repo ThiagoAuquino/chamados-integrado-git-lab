@@ -3,7 +3,7 @@
 namespace App\Domain\Permission\UseCases;
 
 use App\Domain\Auth\Services\AuthServiceInterface;
-use App\Domain\User\Repositories\UserRepositoryInterface;
+use App\Domain\Usuario\Repositories\UserRepositoryInterface;
 
 class CheckPermissionUseCase
 {

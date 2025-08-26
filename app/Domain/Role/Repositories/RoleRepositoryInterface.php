@@ -17,3 +17,4 @@ interface RoleRepositoryInterface
     public function delete(int $id): bool;
     public function all(): array;
 }
+

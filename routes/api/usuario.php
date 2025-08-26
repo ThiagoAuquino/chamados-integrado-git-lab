@@ -10,7 +10,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy']);
     // CRUD básico de usuários
     Route::get('users', [UserController::class, 'index']);

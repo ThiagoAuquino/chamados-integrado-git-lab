@@ -4,21 +4,24 @@ namespace App\Domain\Role\DTOs;
 
 class UpdateRoleDTO
 {
-    public function __construct(
-        // Adicione os atributos aqui
-    ) {}
+    public ?string $name;
+    public ?string $description;
 
-    public static function fromArray(array $data): self
+    public function __construct(?string $name = null, ?string $description = null)
     {
-        return new self(
-            // mapeie os dados aqui
-        );
+        $this->name = $name;
+        $this->description = $description;
     }
 
     public function toArray(): array
     {
-        return [
-            // converta os dados aqui
-        ];
+        $data = [];
+        if ($this->name !== null) {
+            $data['name'] = $this->name;
+        }
+        if ($this->description !== null) {
+            $data['description'] = $this->description;
+        }
+        return $data;
     }
 }

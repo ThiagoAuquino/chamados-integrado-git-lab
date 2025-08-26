@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Permission\PermissionController;
 use App\Http\Controllers\Api\Role\RoleController;
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:api')->group(function () {
     // Permissões
     Route::get('permissions', [PermissionController::class, 'index']);
     Route::get('permissions/{id}', [PermissionController::class, 'show']);
