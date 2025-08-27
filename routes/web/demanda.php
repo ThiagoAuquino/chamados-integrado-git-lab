@@ -2,11 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\DemandaController;
+use App\Http\Controllers\Web\DemandaLogController;
 
 Route::middleware(['auth', 'verified'])->prefix('demandas')->name('demandas.')->group(function () {
     
     // Rotas básicas (já definidas no resource)
-    // Route::resource('/', DemandaController::class);
+    Route::resource('/', DemandaController::class);
     
     // Rotas específicas para ações de demanda
     Route::get('pending', [DemandaController::class, 'pending'])->name('pending');
@@ -33,4 +34,6 @@ Route::middleware(['auth', 'verified'])->prefix('demandas')->name('demandas.')->
         ->middleware('can:import_demandas');
     Route::post('importar', [DemandaController::class, 'importProcess'])->name('import.process')
         ->middleware('can:import_demandas');
+
+    Route::get('/demandas/{id}/logs', [DemandaLogController::class, 'show'])->name('demandas.logs');
 });

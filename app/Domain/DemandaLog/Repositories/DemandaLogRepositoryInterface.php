@@ -2,9 +2,6 @@
 
 namespace App\Domain\DemandaLog\Repositories;
 
-namespace App\Domain\DemandaLog\Repositories;
-
-use App\Domain\DemandaLog\Entities\DemandaLog;
 use App\Domain\DemandaLog\DTOs\CreateDemandaLogDTO;
 
 interface DemandaLogRepositoryInterface
