@@ -36,4 +36,8 @@ Route::middleware(['auth', 'verified'])->prefix('demandas')->name('demandas.')->
         ->middleware('can:import_demandas');
 
     Route::get('/demandas/{id}/logs', [DemandaLogController::class, 'show'])->name('demandas.logs');
+
+    // Rota da visualização Kanban
+    Route::get('kanban', [DemandaController::class, 'kanban'])->name('kanban.index');
+
 });

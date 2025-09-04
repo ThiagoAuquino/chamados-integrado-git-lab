@@ -13,16 +13,35 @@ class DashboardController extends Controller
     {
         Gate::authorize('view-dashboard');
 
-        // Consome API para estatísticas
         $apiUrl = config('app.url') . '/api';
-        
+
         try {
-            $stats = Http::withToken($request->user()->createToken('dashboard')->plainTextToken)
+            $token = $request->user()->createToken('dashboard')->plainTextToken;
+
+            $statistics = Http::withToken($token)
                 ->get($apiUrl . '/demandas/stats')
                 ->json();
 
-            return view('dashboard.index', compact('stats'));
+            $demandas = Http::withToken($token)
+                ->get($apiUrl . '/demandas/kanban')
+                ->json();
+
+            $chart_data = Http::withToken($token)
+                ->get($apiUrl . '/demandas/charts')
+                ->json();
+
+            $recent_activities = Http::withToken($token)
+                ->get($apiUrl . '/logs/recent')
+                ->json();
+
+            return view('dashboard.index', compact(
+                'statistics',
+                'demandas',
+                'chart_data',
+                'recent_activities'
+            ));
         } catch (\Exception $e) {
+
             $stats = [
                 'total' => 0,
                 'em_branco' => 0,
@@ -34,6 +53,6 @@ class DashboardController extends Controller
 
             return view('dashboard.index', compact('stats'))
                 ->with('error', 'Erro ao carregar estatísticas');
-        }
+        }        
     }
 }

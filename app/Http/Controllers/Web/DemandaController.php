@@ -303,4 +303,19 @@ class DemandaController extends Controller
             ->delete($this->apiUrl . '/' . $id);
         return redirect()->route('demandas.index')->with('success', 'Demanda excluída com sucesso!');
     }
+
+    // Em App\Http\Controllers\Web\DemandaController.php
+
+    public function kanban()
+    {
+        $demandas = [
+            'backlog'        => Demanda::where('status', 'Backlog')->get(),
+            'analise'        => Demanda::where('status', 'Análise')->get(),
+            'desenvolvimento' => Demanda::where('status', 'Desenvolvimento')->get(),
+            'teste'          => Demanda::where('status', 'Teste')->get(),
+            'concluido'      => Demanda::where('status', 'Concluído')->get(),
+        ];
+
+        return view('kanban.index', compact('demandas'));
+    }
 }
