@@ -1,86 +1,57 @@
 <?php
 
-namespace App\Infrastructure\Persistence;
+namespace App\Infrastructure\Persistence\Demanda;
 
 use App\Domain\Demanda\Repositories\DemandaRepositoryInterface;
 use App\Domain\DemandaLog\Repositories\DemandaLogRepositoryInterface;
-
 use App\Domain\Demanda\Entities\Demanda as DemandaEntity;
-use App\Models\Demanda\Demanda;
+use App\Domain\DemandaLog\DTOs\CreateDemandaLogDTO;
+use App\Models\Demanda\Demanda as DemandaModel;
+use App\Models\Demanda\DemandaStatus;
+use App\Models\Demanda\DemandaTipo;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class DemandaRepository implements DemandaRepositoryInterface
 {
-    protected Demanda $model;
+    protected DemandaModel $model;
+    protected DemandaLogRepositoryInterface $logRepository;
 
-    public function __construct(Demanda $model, private DemandaLogRepositoryInterface $logRepository)
+    public function __construct(DemandaModel $model, DemandaLogRepositoryInterface $logRepository)
     {
         $this->model = $model;
+        $this->logRepository = $logRepository;
     }
 
     public function all(): Collection
     {
-        // Retorna coleção de entidades Demanda, convertendo do modelo Eloquent
-        return $this->model->all()->map(function ($item) {
-            return new DemandaEntity(
-                $item->id,
-                $item->produto,
-                $item->chamado,
-                $item->descricao,
-                $item->tipo,
-                $item->data_previsao,
-                $item->cliente,
-                $item->responsavel_id,
-                $item->status,
-                $item->prioridade,
-                $item->created_at->toDateTimeString(),
-                $item->updated_at->toDateTimeString(),
-            );
-        });
+        return $this->model
+            ->with(['tipo', 'status'])
+            ->get()
+            ->map(fn($item) => $this->mapToEntity($item));
     }
 
     public function find(int $id): ?DemandaEntity
     {
-        $item = $this->model->find($id);
-        if (!$item) {
-            return null;
-        }
+        $item = $this->model
+            ->with(['tipo', 'status'])
+            ->find($id);
 
-        return new DemandaEntity(
-            $item->id,
-            $item->produto,
-            $item->chamado,
-            $item->descricao,
-            $item->tipo,
-            $item->data_previsao,
-            $item->cliente,
-            $item->responsavel_id,
-            $item->status,
-            $item->prioridade,
-            $item->created_at->toDateTimeString(),
-            $item->updated_at->toDateTimeString(),
-        );
+        return $item ? $this->mapToEntity($item) : null;
     }
 
     public function create(array $data): DemandaEntity
     {
+
+        // Cria o registro
         $item = $this->model->create($data);
 
-        return new DemandaEntity(
-            $item->id,
-            $item->produto,
-            $item->chamado,
-            $item->descricao,
-            $item->tipo,
-            $item->data_previsao,
-            $item->cliente,
-            $item->responsavel_id,
-            $item->status,
-            $item->prioridade,
-            $item->created_at->toDateTimeString(),
-            $item->updated_at->toDateTimeString(),
-        );
+        // Recarregar com relacionamentos para montar a entidade corretamente
+        $item = $item->fresh(['tipo', 'status']);
+
+        return $this->mapToEntity($item);
     }
 
     public function update(int $id, array $data): bool
@@ -92,21 +63,34 @@ class DemandaRepository implements DemandaRepositoryInterface
 
         $original = $item->replicate();
 
+        // Para casos em que o DTO ou chamada possam ainda passar 'tipo' ou 'status'
+        if (isset($data['tipo'])) {
+            $tipoModel = DemandaTipo::where('tipo', $data['tipo'])->first();
+            $data['tipo_id'] = $tipoModel ? $tipoModel->id : null;
+            unset($data['tipo']);
+        }
+        if (isset($data['status'])) {
+            $statusModel = DemandaStatus::where('status', $data['status'])->first();
+            $data['status_id'] = $statusModel ? $statusModel->id : null;
+            unset($data['status']);
+        }
+
         $updated = $item->update($data);
 
-        if ($updated && auth()->check()) {
+        if ($updated && Auth::check()) {
             foreach ($data as $key => $newValue) {
                 $oldValue = $original->$key ?? null;
                 if ($oldValue != $newValue) {
                     $this->logRepository->create(
-                        \App\Domain\DemandaLog\DTOs\CreateDemandaLogDTO::fromArray([
+                    CreateDemandaLogDTO::fromArray([
                             'demanda_id'    => $item->id,
-                            'user_id'       => auth()->id(),
+                            'user_id'       => Auth::id(),
                             'action'        => 'update',
                             'field_changed' => $key,
                             'old_value'     => (string) $oldValue,
                             'new_value'     => (string) $newValue,
                             'description'   => "Campo '{$key}' alterado",
+                            'created_at'    => now()->toDateTimeString(),
                         ])
                     );
                 }
@@ -115,7 +99,6 @@ class DemandaRepository implements DemandaRepositoryInterface
 
         return $updated;
     }
-
 
     public function delete(int $id): bool
     {
@@ -126,82 +109,52 @@ class DemandaRepository implements DemandaRepositoryInterface
         return $item->delete();
     }
 
-    public function getHistory(int $demandaId): array
-    {
-        return $this->logRepository->findByDemanda($demandaId);
-    }
-
-
-    public function getStats(): array
-    {
-        return $this->model->select('status', DB::raw('count(*) as count'))
-            ->groupBy('status')
-            ->pluck('count', 'status')
-            ->toArray();
-    }
-
     public function getPending(): Collection
     {
-        return $this->model->where('status', 'em_branco')->get()->map(function ($item) {
-            return new DemandaEntity(
-                $item->id,
-                $item->produto,
-                $item->chamado,
-                $item->descricao,
-                $item->tipo,
-                $item->data_previsao,
-                $item->cliente,
-                $item->responsavel_id,
-                $item->status,
-                $item->prioridade,
-                $item->created_at->toDateTimeString(),
-                $item->updated_at->toDateTimeString(),
-            );
-        });
+        // Filtrar por status “em_branco” via relacionamento status
+        return $this->model
+            ->with(['tipo', 'status'])
+            ->whereHas('status', fn($q) => $q->where('status', 'em_branco'))
+            ->get()
+            ->map(fn($item) => $this->mapToEntity($item));
     }
 
     public function getOverdue(): Collection
     {
         return $this->model
+            ->with(['tipo', 'status'])
             ->where('data_previsao', '<', now())
-            ->where('status', '!=', 'entregue')
+            ->whereHas('status', fn($q) => $q->where('status', '!=', 'entregue'))
             ->get()
-            ->map(function ($item) {
-                return new DemandaEntity(
-                    $item->id,
-                    $item->produto,
-                    $item->chamado,
-                    $item->descricao,
-                    $item->tipo,
-                    $item->data_previsao,
-                    $item->cliente,
-                    $item->responsavel_id,
-                    $item->status,
-                    $item->prioridade,
-                    $item->created_at->toDateTimeString(),
-                    $item->updated_at->toDateTimeString(),
-                );
-            });
+            ->map(fn($item) => $this->mapToEntity($item));
     }
+
+    // outros métodos que usam findByUser, getStats etc, adaptando semelhante a above
 
     public function getByUser(int $userId): Collection
     {
-        return $this->model->where('responsavel_id', $userId)->get()->map(function ($item) {
-            return new DemandaEntity(
-                $item->id,
-                $item->produto,
-                $item->chamado,
-                $item->descricao,
-                $item->tipo,
-                $item->data_previsao,
-                $item->cliente,
-                $item->responsavel_id,
-                $item->status,
-                $item->prioridade,
-                $item->created_at->toDateTimeString(),
-                $item->updated_at->toDateTimeString(),
-            );
-        });
+        return $this->model
+            ->with(['tipo', 'status'])
+            ->where('responsavel_id', $userId)
+            ->get()
+            ->map(fn($item) => $this->mapToEntity($item));
+    }
+
+    public function getStats(): array
+    {
+        // Esse método retorna estatísticas por nome de status
+        $rows = $this->model
+            ->select('status_id', DB::raw('count(*) as count'))
+            ->groupBy('status_id')
+            ->get();
+
+        $result = [];
+        foreach ($rows as $row) {
+            $status = DemandaStatus::find($row->status_id);
+            $result[$status->status] = $row->count;
+        }
+
+        return $result;
     }
 
     public function updatePriority(int $id, string $priority, int $order, int $userId): DemandaEntity
@@ -211,43 +164,46 @@ class DemandaRepository implements DemandaRepositoryInterface
         $item->order = $order;
         $item->save();
 
+        $item = $item->fresh(['tipo', 'status']);
+
         $this->logRepository->create(
-            \App\Domain\DemandaLog\DTOs\CreateDemandaLogDTO::fromArray([
+        CreateDemandaLogDTO::fromArray([
                 'demanda_id'    => $item->id,
                 'user_id'       => $userId,
                 'action'        => 'update_priority',
                 'field_changed' => 'priority',
-                'old_value'     => (string) $item->getOriginal('priority'),
-                'new_value'     => (string) $priority,
+                'old_value'     => (string) $item->getOriginal('prioridade'),
+                'new_value'     => $priority,
                 'description'   => "Prioridade alterada",
+                'created_at'    => now()->toDateTimeString(),
             ])
         );
 
-
-        return new DemandaEntity(
-            $item->id,
-            $item->produto,
-            $item->chamado,
-            $item->descricao,
-            $item->tipo,
-            $item->data_previsao,
-            $item->cliente,
-            $item->responsavel_id,
-            $item->status,
-            $item->prioridade,
-            $item->created_at->toDateTimeString(),
-            $item->updated_at->toDateTimeString(),
-        );
+        return $this->mapToEntity($item);
     }
 
-    public function addComment(int $id, string $comment, int $userId): array
+        public function getHistory(int $demandaId): array
+    {
+        return $this->logRepository->findByDemanda($demandaId);
+    }
+
+        public function addComment(int $id, string $comment, int $userId): array
     {
         $model = $this->model->findOrFail($id);
         $commentData = $model->comments()->create(['user_id' => $userId, 'comment' => $comment]);
         return $commentData->toArray();
     }
 
-    public function bulkUpdate(array $ids, string $action, mixed $value, int $userId): array
+        public function export(array $filters): array
+    {
+        $query = $this->model->query();
+        foreach ($filters as $f => $v) {
+            $query->where($f, $v);
+        }
+        return $query->get()->toArray();
+    }
+
+        public function bulkUpdate(array $ids, string $action, mixed $value, int $userId): array
     {
         $results = [];
         foreach ($ids as $id) {
@@ -273,14 +229,23 @@ class DemandaRepository implements DemandaRepositoryInterface
         return $results;
     }
 
-
-
-    public function export(array $filters): array
+    // Função auxiliar para mapear modelo Eloquent para DemandaEntity
+    protected function mapToEntity(DemandaModel $item): DemandaEntity
     {
-        $query = $this->model->query();
-        foreach ($filters as $f => $v) {
-            $query->where($f, $v);
-        }
-        return $query->get()->toArray();
+
+        return new DemandaEntity(
+            $item->id,
+            $item->produto,
+            $item->chamado,
+            $item->descricao,
+            $item->tipo?->tipo ?? '',
+            $item->data_previsao->format('Y-m-d'),
+            $item->cliente,
+            $item->responsavel_id,
+            $item->status?->status ?? '',
+            $item->priority,
+            $item->created_at->toDateTimeString(),
+            $item->updated_at->toDateTimeString()
+        );
     }
 }

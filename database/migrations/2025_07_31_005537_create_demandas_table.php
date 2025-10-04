@@ -17,7 +17,6 @@ return new class extends Migration {
             $table->string('cliente');
             $table->unsignedBigInteger('responsavel_id')->nullable();
             $table->enum('status', ['em_branco', 'analise', 'em_execucao', 'em_testes', 'validacao', 'entregue'])->default('em_branco');
-            $table->enum('prioridade', ['verde', 'amarelo', 'laranja', 'vermelho'])->default('verde');
             $table->timestamps();
         });
     }

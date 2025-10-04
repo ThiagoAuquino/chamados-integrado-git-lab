@@ -42,4 +42,5 @@ class CreateDemandaLogDTO
             'created_at'    => $this->created_at,
         ];
     }
+
 }

@@ -4,7 +4,7 @@ namespace App\Domain\DemandaLog\UseCases;
 
 use App\Domain\DemandaLog\Repositories\DemandaLogRepositoryInterface;
 use App\Domain\DemandaLog\DTOs\CreateDemandaLogDTO;
-use App\Domain\DemandaLog\Entities\DemandaLog;
+use App\Domain\DemandaLog\Entities\DemandaLog as DemandaLogEntity;
 
 class CreateLogUseCase
 {
@@ -12,7 +12,7 @@ class CreateLogUseCase
         private DemandaLogRepositoryInterface $logRepository
     ) {}
 
-    public function execute(CreateDemandaLogDTO $dto): DemandaLog
+    public function execute(CreateDemandaLogDTO $dto): DemandaLogEntity
     {
         return $this->logRepository->create($dto);
     }

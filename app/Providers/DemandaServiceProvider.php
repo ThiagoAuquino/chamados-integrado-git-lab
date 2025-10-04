@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Gate;
 
 
 use App\Domain\Demanda\Repositories\DemandaRepositoryInterface;
-use App\Infrastructure\Persistence\DemandaRepository;
+use App\Infrastructure\Persistence\Demanda\DemandaRepository;
 use App\Models\Demanda\Demanda;
 use App\Policies\Demanda\DemandaPolicy;
 
@@ -18,8 +18,7 @@ class DemandaServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Bind da interface para o repositório concreto
-        $this->app->bind(DemandaRepositoryInterface::class, DemandaRepository::class);
+        
     }
 
     /**

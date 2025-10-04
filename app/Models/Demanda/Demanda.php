@@ -15,11 +15,11 @@ class Demanda extends Model
         'produto',
         'chamado',
         'descricao',
-        'tipo',
+        'tipo_id',
         'data_previsao',
         'cliente',
         'responsavel_id',
-        'status',
+        'status_id',
         'priority',
         'order',
         'prioridade',
@@ -39,5 +39,14 @@ class Demanda extends Model
     public function responsavel()
     {
         return $this->belongsTo(User::class, 'responsavel_id');
+    }
+
+    public function tipo()
+    {
+        return $this->belongsTo(DemandaTipo::class, 'tipo_id');
+    }
+    public function status()
+    {
+        return $this->belongsTo(DemandaStatus::class, 'status_id');
     }
 }

@@ -2,49 +2,93 @@
 
 namespace App\Infrastructure\Persistence\DemandaLog;
 
+use App\Domain\DemandaLog\Entities\DemandaLog as DemandaLogEntity;
 use App\Domain\DemandaLog\Repositories\DemandaLogRepositoryInterface;
-use App\Models\DemandaLog;
+use App\Domain\DemandaLog\DTOs\CreateDemandaLogDTO;
+use App\Models\DemandaLog as DemandaLogModel;
 use Illuminate\Support\Collection;
 
 class DemandaLogRepository implements DemandaLogRepositoryInterface
 {
-    protected $demandaLogModel;
+    protected DemandaLogModel $demandaLogModel;
 
-    public function __construct(App\Models\DemandaLog $demandaLog)
+    public function __construct(DemandaLogModel $demandaLog)
     {
         $this->demandaLogModel = $demandaLog;
     }
 
     public function all(): Collection
     {
-        return $this->demandaLogModel->all();
+        return $this->demandaLogModel->all()->map(fn ($item) => $this->mapToEntity($item));
     }
 
-    public function find(int $id): ?object
+    public function find(int $id): ?DemandaLogEntity
     {
-        return $this->demandaLogModel->find($id);
+        $model = $this->demandaLogModel->find($id);
+        return $model ? $this->mapToEntity($model) : null;
     }
 
-    public function create(array $data): object
+    public function create(CreateDemandaLogDTO $dto): DemandaLogEntity
     {
-        return $this->demandaLogModel->create($data);
+        $model = $this->demandaLogModel->create($dto->toArray());
+        return $this->mapToEntity($model);
     }
 
     public function update(int $id, array $data): bool
     {
-        $item = $this->find($id);
-        if (!$item) {
+        $model = $this->demandaLogModel->find($id);
+        if (!$model) {
             return false;
         }
-        return $item->update($data);
+
+        return $model->update($data);
     }
 
     public function delete(int $id): bool
     {
-        $item = $this->find($id);
-        if (!$item) {
+        $model = $this->demandaLogModel->find($id);
+        if (!$model) {
             return false;
         }
-        return $item->delete();
+
+        return $model->delete();
+    }
+
+    public function findByDemanda(int $demandaId): array
+    {
+        return $this->demandaLogModel
+            ->where('demanda_id', $demandaId)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn ($item) => $this->mapToEntity($item))
+            ->toArray();
+    }
+
+    public function findByUser(int $userId): array
+    {
+        return $this->demandaLogModel
+            ->where('user_id', $userId)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn ($item) => $this->mapToEntity($item))
+            ->toArray();
+    }
+
+    /**
+     * Transforma um model Eloquent em uma entidade de domínio
+     */
+    protected function mapToEntity(DemandaLogModel $model): DemandaLogEntity
+    {
+        return new DemandaLogEntity(
+            id: $model->id,
+            demanda_id: $model->demanda_id,
+            user_id: $model->user_id,
+            action: $model->action,
+            field_changed: $model->field_changed,
+            old_value: $model->old_value,
+            new_value: $model->new_value,
+            description: $model->description,
+            created_at: optional($model->created_at)->toDateTimeString() ?? now()->toDateTimeString(),
+        );
     }
 }

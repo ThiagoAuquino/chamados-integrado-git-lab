@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class DemandasStatusSeeder extends Seeder
+class DemandaStatusSeeder extends Seeder
 {
     public function run()
     {
