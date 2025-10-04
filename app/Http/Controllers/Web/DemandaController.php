@@ -98,7 +98,8 @@ class DemandaController extends Controller
     {
         Gate::authorize('viewAny', \App\Models\Demanda\Demanda::class);
 
-        $token = $request->user()->createToken('web')->plainTextToken;
+        $token = $token = $request->bearerToken();
+
         $filters = $request->only(['status', 'responsavel_id', 'tipo', 'cliente']);
 
         try {
