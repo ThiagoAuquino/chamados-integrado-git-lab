@@ -10,11 +10,11 @@ class DemandaTipoSeeder extends Seeder
     public function run()
     {
         DB::table('demanda_tipo')->insert([
-            ['tipo' => 'Melhoria', 'descricao' => 'Melhoria de sistema ou processo'],
-            ['tipo' => 'Sugestão', 'descricao' => 'Sugestão de novas funcionalidades ou melhorias'],
-            ['tipo' => 'Correção', 'descricao' => 'Correção de bugs e erros'],
-            ['tipo' => 'Novidade', 'descricao' => 'Novas funcionalidades e módulos'],
-            ['tipo' => 'Problema', 'descricao' => 'Problemas reportados por clientes ou usuários'],
+            ['tipo' => 'Melhoria', 'descricao' => 'Melhoria de sistema ou processo', 'created_at' => now()->toDateTimeString()],
+            ['tipo' => 'Sugestão', 'descricao' => 'Sugestão de novas funcionalidades ou melhorias', 'created_at' => now()->toDateTimeString()],
+            ['tipo' => 'Correção', 'descricao' => 'Correção de bugs e erros', 'created_at' => now()->toDateTimeString()],
+            ['tipo' => 'Novidade', 'descricao' => 'Novas funcionalidades e módulos', 'created_at' => now()->toDateTimeString()],
+            ['tipo' => 'Problema', 'descricao' => 'Problemas reportados por clientes ou usuários', 'created_at' => now()->toDateTimeString()],
         ]);
     }
 }

@@ -14,6 +14,7 @@ Route::middleware(['auth', 'verified'])->prefix('demandas')->name('demandas.')->
     Route::get('my-tasks', [DemandaController::class, 'myTasks'])->name('my-tasks');
     Route::get('overdue', [DemandaController::class, 'overdue'])->name('overdue');
     
+    Route::post('reordenar', [DemandaController::class, 'bulkReorder'])->name('demandas.reordenar');
     // Filtros e buscas
     Route::get('filter/{status}', [DemandaController::class, 'filterByStatus'])->name('filter.status');
     Route::get('search', [DemandaController::class, 'search'])->name('search');

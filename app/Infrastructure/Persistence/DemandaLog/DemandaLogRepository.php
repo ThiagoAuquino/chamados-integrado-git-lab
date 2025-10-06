@@ -7,6 +7,7 @@ use App\Domain\DemandaLog\Repositories\DemandaLogRepositoryInterface;
 use App\Domain\DemandaLog\DTOs\CreateDemandaLogDTO;
 use App\Models\DemandaLog as DemandaLogModel;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 
 class DemandaLogRepository implements DemandaLogRepositoryInterface
 {
@@ -30,6 +31,7 @@ class DemandaLogRepository implements DemandaLogRepositoryInterface
 
     public function create(CreateDemandaLogDTO $dto): DemandaLogEntity
     {
+
         $model = $this->demandaLogModel->create($dto->toArray());
         return $this->mapToEntity($model);
     }

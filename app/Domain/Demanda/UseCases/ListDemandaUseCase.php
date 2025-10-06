@@ -18,18 +18,18 @@ class ListDemandaUseCase
 
     public function getStats(): array
     {
-        return $this->repository->getStats();
+        return $this->demandaRepository->getStats();
     }
     public function getPending(): mixed
     {
-        return $this->repository->getPending();
+        return $this->demandaRepository->getPending();
     }
     public function getOverdue(): mixed
     {
-        return $this->repository->getOverdue();
+        return $this->demandaRepository->getOverdue();
     }
     public function getByUser(int $userId): mixed
     {
-        return $this->repository->getByUser($userId);
+        return $this->demandaRepository->getByUser($userId);
     }
 }

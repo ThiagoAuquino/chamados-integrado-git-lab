@@ -22,7 +22,7 @@ class DemandaLog extends Model
         'created_at',
     ];
 
-    public $timestamps = true;
+    public $timestamps = false;
 
     protected $casts = [
         'created_at' => 'datetime',

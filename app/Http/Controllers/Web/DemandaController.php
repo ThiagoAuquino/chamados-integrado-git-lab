@@ -98,13 +98,19 @@ class DemandaController extends Controller
     {
         Gate::authorize('viewAny', \App\Models\Demanda\Demanda::class);
 
-        $token = $token = $request->bearerToken();
-
+        $token = $request->user()->createToken('web')->plainTextToken;
+        
         $filters = $request->only(['status', 'responsavel_id', 'tipo', 'cliente']);
 
         try {
             $response = Http::withToken($token)
                 ->get($this->apiUrl, $filters);
+
+            dd([
+                'status' => $response->status(),
+                'body' => $response->body(),
+                'headers' => $response->headers(),
+            ]);
 
             $demandas = $response->successful() ? $response->json() : ['data' => []];
 
@@ -116,6 +122,29 @@ class DemandaController extends Controller
             return view('demandas.index', compact('demandas', 'users', 'filters'));
         } catch (\Exception $e) {
             return back()->with('error', 'Erro ao carregar demandas');
+        }
+    }
+
+    public function bulkReorder(Request $request)
+    {
+        // Gate::authorize('bulk-operations'); // ou outro gate apropriado
+
+        $token = $request->user()->createToken('web')->plainTextToken;
+
+        try {
+            $response = Http::withToken($token)
+                ->post($this->apiUrl . '/reordenar', [
+                    'demandas' => $request->input('demandas', [])
+                ]);
+
+            if ($response->successful()) {
+                return response()->json(['message' => 'Reordenação realizada com sucesso.']);
+            }
+
+            return response()->json(['error' => 'Erro ao reordenar demandas.'], 422);
+        } catch (\Exception $e) {
+            \Log::error('Erro ao reordenar demandas: ' . $e->getMessage());
+            return response()->json(['error' => 'Erro interno ao reordenar demandas.'], 500);
         }
     }
 

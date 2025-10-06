@@ -29,7 +29,7 @@ class DemandaController extends Controller
 {
 
     use AuthorizesRequests;
-    
+
     public function __construct(
         private ListDemandaUseCase $listDemandaUseCase,
         private CreateDemandaUseCase $createDemandaUseCase,
@@ -50,6 +50,16 @@ class DemandaController extends Controller
         $this->authorize('viewAny', Demanda::class);
 
         return response()->json($useCase->execute());
+    }
+
+    private function getPriorityByOrder(int $order): string
+    {
+        return match ($order) {
+            1 => 'vermelha',
+            2 => 'amarela',
+            3 => 'laranja',
+            default => 'verde',
+        };
     }
 
     public function show($id, ShowDemandaUseCase $useCase)
@@ -204,6 +214,33 @@ class DemandaController extends Controller
             ], 400);
         }
     }
+
+    public function bulkReorder(Request $request)
+    {
+        $this->authorize('update', Demanda::class);
+
+        $data = $request->validate([
+            'demandas' => 'required|array',
+            'demandas.*.id' => 'required|integer|exists:demandas,id',
+            'demandas.*.order' => 'required|integer|min:0'
+        ]);
+
+        foreach ($data['demandas'] as $item) {
+            $priority = $this->getPriorityByOrder($item['order']);
+
+            $this->updatePriorityUseCase->execute(
+                $item['id'],
+                $priority,
+                $item['order'],
+                auth()->id()
+            );
+        }
+
+        return response()->json(['message' => 'Reordenação realizada com sucesso.']);
+    }
+
+
+
 
     /**
      * Demandas pendentes de aprovação

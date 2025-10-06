@@ -17,7 +17,7 @@ class CreateDemandaLogsTable extends Migration
             $table->text('old_value')->nullable();
             $table->text('new_value')->nullable();
             $table->text('description')->nullable();
-            $table->timestamp('created_at');
+            $table->timestamp('created_at')->useCurrent();
             
             $table->index(['demanda_id', 'created_at']);
             $table->index(['user_id', 'created_at']);
